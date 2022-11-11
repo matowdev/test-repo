@@ -1,0 +1,15 @@
+errors.log
+# or, for all
+*.log
+
+*.pdf
+*.ini
+
+# ------------
+	
+Additional_Material/
+
+# ------------
+
+logs/*.log
+!logs/sample.log
