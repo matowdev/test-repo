@@ -1,3 +1,3 @@
-# test_repo
+# test-repo
 
 Where without tests..?
