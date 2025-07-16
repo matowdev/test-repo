@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function display(value) {
         const currentValue = resultInput.value;
 
-        // Prevent adding multiple decimal points to the current number segment.
+        // Запрещаем добавлять несколько десятичных точек в текущий сегмент числа.
         if (value === '.') {
             const numberSegments = currentValue.split(/[+\-*\/]/);
             const lastSegment = numberSegments[numberSegments.length - 1];
@@ -44,6 +44,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const expression = resultInput.value;
         try {
             const result = evaluateExpression(expression);
+            if (!isFinite(result)) {
+                throw new Error('Invalid calculation result');
+            }
             resultInput.value = result;
         } catch (error) {
             resultInput.value = 'Error';
@@ -51,13 +54,24 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function evaluateExpression(expression) {
-        // This is a simple and safe expression evaluator.
-        // It handles basic arithmetic operations with correct precedence.
-        // It does not use eval() or new Function().
-        let tokens = expression.match(/(\d+\.?\d*|[\+\-\*\/])/g);
-        if (!tokens) return 0;
+        // Это простой и безопасный вычислитель выражений.
+        // Он обрабатывает основные арифметические операции с правильным приоритетом.
+        // Он не использует eval() или new Function().
+        const rawTokens = expression.match(/(\d+\.?\d*|[\+\-\*\/])/g);
+        if (!rawTokens) return 0;
 
-        // Handle multiplication and division first
+        // Обрабатываем токены для правильной обработки унарного минуса для отрицательных чисел.
+        const tokens = [];
+        for (let i = 0; i < rawTokens.length; i++) {
+            if (rawTokens[i] === '-' && (i === 0 || /[\+\-\*\/]/.test(rawTokens[i - 1]))) {
+                tokens.push(rawTokens[i] + rawTokens[i + 1]);
+                i++; // Пропускаем следующий токен, так как он теперь является частью отрицательного числа.
+            } else {
+                tokens.push(rawTokens[i]);
+            }
+        }
+
+        // Сначала обрабатываем умножение и деление
         let i = 0;
         while (i < tokens.length) {
             if (tokens[i] === '*' || tokens[i] === '/') {
@@ -65,13 +79,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 const right = parseFloat(tokens[i + 1]);
                 const result = tokens[i] === '*' ? left * right : left / right;
                 tokens.splice(i - 1, 3, result);
-                i = 0; // Restart scan
+                i = 0; // Перезапускаем сканирование
             } else {
                 i++;
             }
         }
 
-        // Handle addition and subtraction
+        // Обрабатываем сложение и вычитание
         let result = parseFloat(tokens[0]);
         for (let i = 1; i < tokens.length; i += 2) {
             const operator = tokens[i];
