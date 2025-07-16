@@ -1,22 +1,49 @@
-// Функция для отображения значения на экране
-function display(value) {
-    document.getElementById('result').value += value;
-}
+document.addEventListener('DOMContentLoaded', function () {
+    const resultInput = document.getElementById('result');
+    const buttons = document.querySelector('.buttons');
 
-// Функция для очистки экрана
-function clearScreen() {
-    document.getElementById('result').value = '';
-}
+    buttons.addEventListener('click', function (event) {
+        if (event.target.tagName === 'BUTTON') {
+            const buttonValue = event.target.textContent;
 
-// Функция для вычисления результата
-function calculate() {
-    var p = document.getElementById('result').value;
-    var q = eval(p);
-    document.getElementById('result').value = q;
-}
+            if (buttonValue === 'C') {
+                clearScreen();
+            } else if (buttonValue === '<') {
+                deleteChar();
+            } else if (buttonValue === '=') {
+                calculate();
+            } else {
+                display(buttonValue);
+            }
+        }
+    });
 
-// Функция для удаления последнего символа
-function deleteChar() {
-    var p = document.getElementById('result').value;
-    document.getElementById('result').value = p.slice(0, -1);
-}
+    // Функция для отображения значения на экране
+    function display(value) {
+        resultInput.value += value;
+    }
+
+    // Функция для очистки экрана
+    function clearScreen() {
+        resultInput.value = '';
+    }
+
+    // Функция для вычисления результата
+    function calculate() {
+        const expression = resultInput.value;
+        try {
+            // Using the Function constructor is safer than eval() as it doesn't have access to the local scope.
+            // For a production-ready calculator, a proper expression parser is recommended.
+            const result = new Function('return ' + expression)();
+            resultInput.value = result;
+        } catch (error) {
+            resultInput.value = 'Error';
+        }
+    }
+
+    // Функция для удаления последнего символа
+    function deleteChar() {
+        const currentValue = resultInput.value;
+        resultInput.value = currentValue.slice(0, -1);
+    }
+});
