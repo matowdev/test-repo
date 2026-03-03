@@ -1,39 +1,39 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap");
 
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Roboto', sans-serif;
+  font-family: "Roboto", sans-serif;
   color: #2c3e50;
   background: linear-gradient(to right, #ece9e6, #ffffff);
 }
 
 header {
-  padding: 1.5em 0;
-  color: #fff;
-  background: linear-gradient(45deg, #1a2a6c, #b21f1f, #fdbb2d);
-  text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   border-bottom: 3px solid #fdbb2d;
-  animation: slideDown 0.8s ease-out;
+  padding: 1.5em 0;
+  text-align: center;
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, .2);
+  background: linear-gradient(45deg, #1a2a6c, #b21f1f, #fdbb2d);
+  animation: slideDown .8s ease-out;
 }
 
 header h1 {
   margin: 0;
   font-size: 2.5em;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, .5);
 }
 
 main {
   margin: 30px auto;
+  border-radius: 10px;
   padding: 30px;
   max-width: 800px;
-  background-color: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
-  transition: transform 0.3s ease-in-out;
-  animation: fadeIn 1.2s ease-in-out 0.5s forwards;
+  background-color: rgba(255, 255, 255, .9);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, .1);
   opacity: 0;
+  transition: transform .3s ease-in-out;
+  animation: fadeIn 1.2s ease-in-out .5s forwards;
 }
 
 main:hover {
@@ -43,7 +43,7 @@ main:hover {
 main p {
   font-size: 1.1em;
   line-height: 1.6;
-  transition: color 0.3s ease;
+  transition: color .3s ease;
 }
 
 main p:hover {
@@ -52,14 +52,90 @@ main p:hover {
 
 footer {
   position: fixed;
+  bottom: 0;
   padding: 1em 0;
   width: 100%;
-  color: #ecf0f1;
-  background-color: rgba(44, 62, 80, 0.9);
   text-align: center;
-  bottom: 0;
-  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
-  animation: slideUp 0.8s ease-out;
+  color: #ecf0f1;
+  background-color: rgba(44, 62, 80, .9);
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, .1);
+  animation: slideUp .8s ease-out;
+}
+
+/* калькулятор и кнопка темы */
+.theme-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: 1px solid #ffffff;
+  border-radius: 20px;
+  padding: 8px 15px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, .2);
+  cursor: pointer;
+  transition: .3s;
+}
+
+.theme-btn:hover {
+  color: #1a2a6c;
+  background: #ffffff;
+}
+
+.calculator {
+  margin: 20px 0;
+  border-left: 5px solid #1a2a6c;
+  border-radius: 8px;
+  padding: 20px;
+  background: #f8f9fa;
+}
+
+.calc-inputs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.calc-inputs input,
+.calc-inputs select {
+  border: 1px solid #dddddd;
+  border-radius: 4px;
+  padding: 8px;
+}
+
+.calc-btn {
+  border: none;
+  border-radius: 5px;
+  padding: 8px 20px;
+  color: #fff;
+  background: #1a2a6c;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+}
+
+.calc-btn:hover {
+  background: #263d96;
+}
+
+.calc-result {
+  margin-top: 15px;
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+/* темная тема */
+body.dark-mode {
+  color: #e0e0e0;
+  background: #121212;
+}
+
+body.dark-mode main {
+  color: #e0e0e0;
+  background-color: #1e1e1e;
+}
+
+body.dark-mode .calculator {
+  border-left-color: #fdbb2d;
+  background: #2d2d2d;
 }
 
 @keyframes fadeIn {
