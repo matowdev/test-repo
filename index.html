@@ -5,6 +5,111 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Test Gemini extension</title>
+  <style>
+    dialog:modal {
+      overscroll-behavior: contain;
+    }
+
+    dialog::backdrop {
+      overflow: hidden;
+      overscroll-behavior: contain;
+      background-color: rgb(0 0 0 / 0);
+      transition-property: background-color, display, overlay;
+      transition-duration: 0.3s;
+      transition-timing-function: ease-out;
+      transition-behavior: allow-discrete;
+    }
+
+    #confirm-dialog {
+      margin: auto;
+      padding: 0;
+      border: 1px solid #d0d7de;
+      border-radius: 12px;
+      max-width: min(420px, calc(100vw - 32px));
+      box-shadow: 0 16px 40px rgb(0 0 0 / 0.2);
+      opacity: 0;
+      transition-property: opacity, transform, display, overlay;
+      transition-duration: 0.3s;
+      transition-timing-function: ease-out;
+      transition-behavior: allow-discrete;
+
+      @media (prefers-reduced-motion: no-preference) {
+        transform: scale(0.92);
+      }
+    }
+
+    :is(#confirm-dialog[open]):where(:not([data-closing])) {
+      opacity: 1;
+
+      @starting-style {
+        opacity: 0;
+      }
+
+      @media (prefers-reduced-motion: no-preference) {
+        transform: scale(1);
+
+        @starting-style {
+          transform: scale(0.92);
+        }
+      }
+
+      &::backdrop {
+        background-color: rgb(0 0 0 / 0.5);
+
+        @starting-style {
+          background-color: rgb(0 0 0 / 0);
+        }
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #confirm-dialog,
+      dialog::backdrop {
+        transition-duration: 0.1s;
+      }
+    }
+
+    .confirm-dialog__form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 20px 24px;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    .confirm-dialog__title {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+
+    .confirm-dialog__text {
+      margin: 0;
+      color: #444;
+      line-height: 1.45;
+    }
+
+    .confirm-dialog__actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .confirm-dialog__btn {
+      padding: 8px 16px;
+      border: 1px solid #c4c9d0;
+      border-radius: 6px;
+      background: #fff;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .confirm-dialog__btn--primary {
+      border-color: #0b57d0;
+      background: #0b57d0;
+      color: #fff;
+    }
+  </style>
 </head>
 
 <body class="page">
@@ -40,11 +145,21 @@
         <h2>AI Agent interactive test zone</h2>
         <input id="demo-input" type="text" placeholder="Agent will type here..."
           style="padding: 10px; width: 80%; display: block;">
-        <button id="demo-btn"
-          onclick="document.getElementById('demo-result').innerText = 'The agent successfully clicked the button!'"
+        <button id="demo-btn" type="button" command="show-modal" commandfor="confirm-dialog"
           style="margin-top: 10px; padding: 10px 20px; cursor: pointer;">Click Me, Agent!</button>
         <p id="demo-result" style="font-weight: bold; color: green;"></p>
       </div>
+
+      <dialog id="confirm-dialog" closedby="any" aria-labelledby="confirm-dialog-title">
+        <form class="confirm-dialog__form" method="dialog">
+          <h2 id="confirm-dialog-title" class="confirm-dialog__title">Confirm Action</h2>
+          <p class="confirm-dialog__text">Are you sure you want to execute the test action?</p>
+          <div class="confirm-dialog__actions">
+            <button class="confirm-dialog__btn" type="submit" value="cancel" autofocus>Cancel</button>
+            <button class="confirm-dialog__btn confirm-dialog__btn--primary" type="submit" value="confirm">Confirm</button>
+          </div>
+        </form>
+      </dialog>
 
       <p class="hero__text">Lorem ipsum dolor sit amet consectetur adipisicing elit. Nisi autem sit officiis eum quod
         ipsa maxime maiores dignissimos nihil suscipit expedita optio, harum pariatur repellendus?</p>
@@ -58,6 +173,117 @@
     <a class="footer__link" href="#">Link 2</a>
     <a class="footer__link" href="#">Link 3</a>
   </footer>
+
+  <script type="module">
+    if (!('commandForElement' in HTMLButtonElement.prototype)) {
+      import('https://esm.run/invokers-polyfill');
+    }
+
+    const dialog = document.getElementById('confirm-dialog');
+    const result = document.getElementById('demo-result');
+    const form = dialog.querySelector('form[method="dialog"]');
+
+    let supportsDisplayTransition;
+    const canTransitionDisplay = () => {
+      if (supportsDisplayTransition !== undefined) {
+        return supportsDisplayTransition;
+      }
+
+      if (!window.CSS?.supports?.('transition-behavior', 'allow-discrete') || !document.body) {
+        return false;
+      }
+
+      const probe = document.createElement('div');
+      probe.style.cssText = 'transition: display 1s allow-discrete !important; display: block;';
+      document.body.appendChild(probe);
+      getComputedStyle(probe).display;
+      probe.style.display = 'none';
+      supportsDisplayTransition = getComputedStyle(probe).display === 'block';
+      probe.remove();
+
+      return supportsDisplayTransition;
+    };
+
+    const supportsTopLayerExit = () => window.CSS?.supports?.('overlay', 'auto') && canTransitionDisplay();
+
+    const closeTopLayer = async (element, returnValue) => {
+      if (!supportsTopLayerExit()) {
+        element.setAttribute('data-closing', '');
+        const animations = element.getAnimations({ subtree: true });
+
+        if (animations.length > 0) {
+          await Promise.race([
+            Promise.allSettled(animations.map((animation) => animation.finished)),
+            new Promise((resolve) => setTimeout(resolve, 2000)),
+          ]);
+        }
+
+        if (!element.hasAttribute('data-closing')) {
+          return;
+        }
+
+        element.removeAttribute('data-closing');
+      }
+
+      if (returnValue !== undefined) {
+        element.close(returnValue);
+
+        return;
+      }
+
+      element.close();
+    };
+
+    dialog.addEventListener('cancel', (event) => {
+      if (!supportsTopLayerExit()) {
+        event.preventDefault();
+        closeTopLayer(dialog);
+      }
+    });
+
+    if (form !== null) {
+      form.addEventListener('submit', (event) => {
+        if (!supportsTopLayerExit()) {
+          event.preventDefault();
+          const submitValue = event.submitter ? event.submitter.value : '';
+          closeTopLayer(dialog, submitValue);
+        }
+      });
+    }
+
+    if (!('closedBy' in HTMLDialogElement.prototype)) {
+      const isOutside = (event, targetDialog) => {
+        const rect = targetDialog.getBoundingClientRect();
+
+        return (
+          event.clientX < rect.left ||
+          event.clientX > rect.right ||
+          event.clientY < rect.top ||
+          event.clientY > rect.bottom
+        );
+      };
+
+      let pressedOutside = false;
+
+      dialog.addEventListener('pointerdown', (event) => {
+        pressedOutside = isOutside(event, dialog);
+      });
+
+      dialog.addEventListener('pointerup', (event) => {
+        if (pressedOutside && isOutside(event, dialog)) {
+          closeTopLayer(dialog);
+        }
+      });
+    }
+
+    dialog.addEventListener('close', () => {
+      if (dialog.returnValue === 'confirm') {
+        result.textContent = 'The agent successfully clicked the button!';
+      }
+
+      dialog.returnValue = '';
+    });
+  </script>
 </body>
 
 </html>
