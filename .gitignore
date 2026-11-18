@@ -9,6 +9,8 @@ errors.log
 
 Additional_Material/
 .vscode/
+.agents/
+skills-lock.json
 
 # ------------
 
